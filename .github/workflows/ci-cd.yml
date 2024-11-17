@@ -39,6 +39,8 @@
 
 
 
+
+
 name: Calculator CI/CD Pipeline
 
 on:
@@ -63,17 +65,17 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # Send Slack notification on test success
+      # Send Slack notification on test success with a green checkmark emoji
       - name: Send Slack notification on test success
         if: success()  # Only send this if tests are successful
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Tests passed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":white_check_mark: Tests passed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # Send Slack notification on test failure
+      # Send Slack notification on test failure with a red cross emoji
       - name: Send Slack notification on test failure
         if: failure()  # Only send this if tests fail
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Tests failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":x: Tests failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
   deploy:
     needs: test
@@ -89,14 +91,14 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./  # Use root directory since index.html is here
 
-      # Send Slack notification on deploy success
+      # Send Slack notification on deploy success with a green checkmark emoji
       - name: Send Slack notification on deploy success
         if: success()  # Only send this if deployment is successful
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to GitHub Pages was successful!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":white_check_mark: Deployment to GitHub Pages was successful!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # Send Slack notification on deploy failure
+      # Send Slack notification on deploy failure with a red cross emoji
       - name: Send Slack notification on deploy failure
         if: failure()  # Only send this if deployment fails
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to GitHub Pages failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":x: Deployment to GitHub Pages failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}

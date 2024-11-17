@@ -38,6 +38,7 @@
 
 
 
+
 name: Calculator CI/CD Pipeline
 
 on:
@@ -62,6 +63,18 @@ jobs:
       - name: Run tests
         run: npm test
 
+      # Send Slack notification on test success
+      - name: Send Slack notification on test success
+        if: success()  # Only send this if tests are successful
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Tests passed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # Send Slack notification on test failure
+      - name: Send Slack notification on test failure
+        if: failure()  # Only send this if tests fail
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Tests failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
   deploy:
     needs: test
     runs-on: ubuntu-latest
@@ -76,14 +89,14 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./  # Use root directory since index.html is here
 
-      # Send Slack notification on success
-      - name: Send Slack notification on success
+      # Send Slack notification on deploy success
+      - name: Send Slack notification on deploy success
         if: success()  # Only send this if deployment is successful
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to GitHub Pages was successful!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # Send Slack notification on failure
-      - name: Send Slack notification on failure
+      # Send Slack notification on deploy failure
+      - name: Send Slack notification on deploy failure
         if: failure()  # Only send this if deployment fails
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to GitHub Pages failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}

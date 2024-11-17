@@ -1,3 +1,43 @@
+# name: Calculator CI/CD Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Install dependencies
+#         run: npm install
+
+#       - name: Run tests
+#         run: npm test
+
+#   deploy:
+#     needs: test
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./  # Use root directory since index.html is here
+
+
+
 name: Calculator CI/CD Pipeline
 
 on:
@@ -35,3 +75,15 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./  # Use root directory since index.html is here
+
+      # Send Slack notification on success
+      - name: Send Slack notification on success
+        if: success()  # Only send this if deployment is successful
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to GitHub Pages was successful!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # Send Slack notification on failure
+      - name: Send Slack notification on failure
+        if: failure()  # Only send this if deployment fails
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to GitHub Pages failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}

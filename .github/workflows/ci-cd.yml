@@ -41,6 +41,77 @@
 
 
 
+# name: Calculator CI/CD Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Install dependencies
+#         run: npm install
+
+#       - name: Run tests
+#         run: npm test
+
+#       # Send Slack notification on test success with a green checkmark emoji
+#       - name: Send Slack notification on test success
+#         if: success()  # Only send this if tests are successful
+#         run: |
+#           curl -X POST -H 'Content-type: application/json' --data '{"text":":white_check_mark: Tests passed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+#       # Send Slack notification on test failure with a red cross emoji
+#       - name: Send Slack notification on test failure
+#         if: failure()  # Only send this if tests fail
+#         run: |
+#           curl -X POST -H 'Content-type: application/json' --data '{"text":":x: Tests failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+#   deploy:
+#     needs: test
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./  # Use root directory since index.html is here
+
+#       # Send Slack notification on deploy success with a green checkmark emoji
+#       - name: Send Slack notification on deploy success
+#         if: success()  # Only send this if deployment is successful
+#         run: |
+#           curl -X POST -H 'Content-type: application/json' --data '{"text":":white_check_mark: Deployment to GitHub Pages was successful!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+#       # Send Slack notification on deploy failure with a red cross emoji
+#       - name: Send Slack notification on deploy failure
+#         if: failure()  # Only send this if deployment fails
+#         run: |
+#           curl -X POST -H 'Content-type: application/json' --data '{"text":":x: Deployment to GitHub Pages failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+
+
+
+
+
+
+
+
+
 name: Calculator CI/CD Pipeline
 
 on:
@@ -77,8 +148,60 @@ jobs:
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{"text":":x: Tests failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  deploy:
+  build-and-deploy:
     needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Docker Buildx for building the image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t my-docker-image .
+
+      # (Optional) Run Docker container locally for testing purposes
+      - name: Run Docker container locally (Optional)
+        run: |
+          docker run -d -p 8080:80 my-docker-image
+
+      # Push Docker image to Docker Hub
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker tag my-docker-image my-dockerhub-username/my-docker-image:latest
+          docker push my-dockerhub-username/my-docker-image:latest
+
+      # Clean up Docker containers
+      - name: Clean up Docker containers
+        run: |
+          docker rm $(docker ps -a -q)
+
+      # Send Slack notification on Docker build success
+      - name: Send Slack notification on Docker build success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":white_check_mark: Docker image built and pushed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # Send Slack notification on Docker build failure
+      - name: Send Slack notification on Docker build failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":x: Docker image build failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  deploy:
+    needs: build-and-deploy
     runs-on: ubuntu-latest
 
     steps:

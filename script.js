@@ -1,18 +1,16 @@
-// script.js
 
-// Function to append a number or operator to the display
 function appendToDisplay(value) {
     const display = document.getElementById('display');
     display.value += value;
   }
   
-  // Function to clear the display
+  
   function clearDisplay() {
     const display = document.getElementById('display');
     display.value = '';
   }
   
-  // Function to calculate the result of the expression
+  
   function calculateResult() {
     const display = document.getElementById('display');
     

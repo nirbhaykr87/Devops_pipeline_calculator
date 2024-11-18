@@ -1,17 +1,14 @@
-// test/calculator.test.js
 
-// Importing the necessary functions from script.js
 const { appendToDisplay, clearDisplay, calculateResult } = require('../script');
 
-// Setup a mock DOM before each test
 beforeEach(() => {
-  // Create a simple DOM structure with an input field for display
+  
   document.body.innerHTML = `<input type="text" id="display" />`;
 });
 
 describe('Calculator Functions', () => {
 
-  // Test for appendToDisplay
+  
   test('should append "1" to the display when appendToDisplay is called with "1"', () => {
     appendToDisplay('1');
     const display = document.getElementById('display');
@@ -80,6 +77,7 @@ describe('Calculator Functions', () => {
   });
 
   // Edge case: Handling division by zero
+  
   test('should display "Error" for invalid expression "1 / 0"', () => {
     document.getElementById('display').value = '1 / 0';
     calculateResult();
@@ -88,6 +86,7 @@ describe('Calculator Functions', () => {
   });
 
   // Edge case: Handling an empty expression
+
   test('should display "Error" for empty expression', () => {
     document.getElementById('display').value = '';
     calculateResult();
@@ -96,6 +95,7 @@ describe('Calculator Functions', () => {
   });
 
   // Edge case: Handling malformed expression
+
   test('should display "Error" for malformed expression like "1 + "', () => {
     document.getElementById('display').value = '1 + ';
     calculateResult();
@@ -104,6 +104,7 @@ describe('Calculator Functions', () => {
   });
 
   // Edge case: Handling non-numeric input
+
   test('should display "Error" for non-numeric input like "abc"', () => {
     document.getElementById('display').value = 'abc';
     calculateResult();

@@ -12,8 +12,8 @@ describe('Calculator Functions', () => {
   test('should append "1" to the display when appendToDisplay is called with "1"', () => {
     appendToDisplay('1');
     const display = document.getElementById('display');
-    expect(display.value).toBe('1');
-    // expect(display.value).toBe('4');
+    // expect(display.value).toBe('1');
+    expect(display.value).toBe('4');
   });
 
   test('should append "2" to the display when appendToDisplay is called with "2"', () => {

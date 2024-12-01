@@ -5,7 +5,7 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #0e1630;
+    background-color: #0e1630 !important;
   }
   
   .calculator {

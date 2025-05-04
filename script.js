@@ -1,4 +1,4 @@
-
+ko
 function appendToDisplay(value) {
     const display = document.getElementById('display');
     display.value += value;
@@ -115,6 +115,32 @@ for filename in os.listdir(FOLDER_PATH):
             )
         print(f"✅ Uploaded {filename}: {response['ResponseMetadata']['HTTPStatusCode']}")
 
+
+import boto3
+import os
+
+# Set your AWS credentials (never share these!)
+os.environ['AWS_ACCESS_KEY_ID'] = 'YOUR_ACCESS_KEY'
+os.environ['AWS_SECRET_ACCESS_KEY'] = 'YOUR_SECRET_KEY'
+os.environ['AWS_DEFAULT_REGION'] = 'ap-south-1'  # or your preferred region
+
+# Firehose stream name and local folder path
+FIREHOSE_STREAM_NAME = 'YOUR_FIREHOSE_STREAM_NAME'
+FOLDER_PATH = r'C:\Path\To\Your\Folder'  # Change this to your actual folder path
+
+# Connect to Firehose
+firehose = boto3.client('firehose')
+
+# Loop through all CSV and JSON files in the folder
+for filename in os.listdir(FOLDER_PATH):
+    if filename.endswith('.csv') or filename.endswith('.json'):
+        file_path = os.path.join(FOLDER_PATH, filename)
+        with open(file_path, 'rb') as f:
+            response = firehose.put_record(
+                DeliveryStreamName=FIREHOSE_STREAM_NAME,
+                Record={'Data': f.read()}
+            )
+        print(f"Uploaded {filename}: {response['ResponseMetadata']['HTTPStatusCode']}")
 
 
 

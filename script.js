@@ -91,56 +91,53 @@ function appendToDisplay(value) {
 
 
 
-
-
-
 import boto3
-import os
+import base64
+import json
 
-# 🔧 Replace these with your values
-FIREHOSE_STREAM_NAME = 'your-firehose-name'
-FOLDER_PATH = r'C:\Path\To\Your\Files'  # Use raw string for Windows paths
+# ======= CONFIGURATION =======
+stream_name = "your-firehose-name"
+file_path = "your-file.json"  # or .csv
+batch_size = 500
+# =============================
 
-# Connect to Firehose
-firehose = boto3.client('firehose')
+client = boto3.client('firehose')
 
-# Loop through files
-for filename in os.listdir(FOLDER_PATH):
-    if filename.endswith('.csv') or filename.endswith('.json'):
-        file_path = os.path.join(FOLDER_PATH, filename)
-        with open(file_path, 'rb') as f:
-            response = firehose.put_record(
-                DeliveryStreamName=FIREHOSE_STREAM_NAME,
-                Record={'Data': f.read()}
-            )
-        print(f"✅ Uploaded {filename}: {response['ResponseMetadata']['HTTPStatusCode']}")
+def chunked_iterable(iterable, size):
+    """Yield chunks of size 'size' from iterable."""
+    chunk = []
+    for item in iterable:
+        chunk.append(item)
+        if len(chunk) == size:
+            yield chunk
+            chunk = []
+    if chunk:
+        yield chunk
 
+def encode_line(line):
+    return base64.b64encode(line.encode("utf-8")).decode("utf-8")
 
-import boto3
-import os
+def send_batch(records):
+    entries = [{"Data": encode_line(r)} for r in records]
+    response = client.put_record_batch(
+        DeliveryStreamName=stream_name,
+        Records=entries
+    )
+    failed = response['FailedPutCount']
+    if failed > 0:
+        print(f"[!] {failed} record(s) failed to deliver.")
+    else:
+        print(f"[✓] Sent {len(records)} records successfully.")
 
-# Set your AWS credentials (never share these!)
-os.environ['AWS_ACCESS_KEY_ID'] = 'YOUR_ACCESS_KEY'
-os.environ['AWS_SECRET_ACCESS_KEY'] = 'YOUR_SECRET_KEY'
-os.environ['AWS_DEFAULT_REGION'] = 'ap-south-1'  # or your preferred region
+def main():
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+        for batch in chunked_iterable(lines, batch_size):
+            send_batch(batch)
 
-# Firehose stream name and local folder path
-FIREHOSE_STREAM_NAME = 'YOUR_FIREHOSE_STREAM_NAME'
-FOLDER_PATH = r'C:\Path\To\Your\Folder'  # Change this to your actual folder path
+if __name__ == "__main__":
+    main()
 
-# Connect to Firehose
-firehose = boto3.client('firehose')
-
-# Loop through all CSV and JSON files in the folder
-for filename in os.listdir(FOLDER_PATH):
-    if filename.endswith('.csv') or filename.endswith('.json'):
-        file_path = os.path.join(FOLDER_PATH, filename)
-        with open(file_path, 'rb') as f:
-            response = firehose.put_record(
-                DeliveryStreamName=FIREHOSE_STREAM_NAME,
-                Record={'Data': f.read()}
-            )
-        print(f"Uploaded {filename}: {response['ResponseMetadata']['HTTPStatusCode']}")
 
 
 

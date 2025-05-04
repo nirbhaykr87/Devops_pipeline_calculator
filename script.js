@@ -94,6 +94,26 @@ function appendToDisplay(value) {
 
 
 
+import boto3
+import os
+
+# 🔧 Replace these with your values
+FIREHOSE_STREAM_NAME = 'your-firehose-name'
+FOLDER_PATH = r'C:\Path\To\Your\Files'  # Use raw string for Windows paths
+
+# Connect to Firehose
+firehose = boto3.client('firehose')
+
+# Loop through files
+for filename in os.listdir(FOLDER_PATH):
+    if filename.endswith('.csv') or filename.endswith('.json'):
+        file_path = os.path.join(FOLDER_PATH, filename)
+        with open(file_path, 'rb') as f:
+            response = firehose.put_record(
+                DeliveryStreamName=FIREHOSE_STREAM_NAME,
+                Record={'Data': f.read()}
+            )
+        print(f"✅ Uploaded {filename}: {response['ResponseMetadata']['HTTPStatusCode']}")
 
 
 

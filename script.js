@@ -139,6 +139,49 @@ if __name__ == "__main__":
     main()
 
 
+import base64
+import json
+import time
+
+def lambda_handler(event, context):
+    output = []
+
+    for record in event['records']:
+        try:
+            # Decode Base64 input data
+            payload = base64.b64decode(record['data']).decode('utf-8')
+            # Assume CSV input for the 'customers' table from Purchase Data
+            fields = payload.strip().split(',')
+
+            transformed = {
+                "customer_id": fields[0],
+                "name": fields[1],
+                "email": fields[2],
+                "region": fields[3],
+                "loyalty_status": fields[4],
+                "ingested_at": int(time.time())
+            }
+
+            new_payload = base64.b64encode(json.dumps(transformed).encode('utf-8')).decode('utf-8')
+
+            output_record = {
+                'recordId': record['recordId'],
+                'result': 'Ok',
+                'data': new_payload
+            }
+        except Exception as e:
+            output_record = {
+                'recordId': record['recordId'],
+                'result': 'ProcessingFailed',
+                'data': record['data']
+            }
+
+        output.append(output_record)
+
+    return {'records': output}
+
+
+
 
 
 
